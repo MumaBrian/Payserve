@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-
+import { User } from 'src/entities/user.entity';
 @Module({
 	imports: [
 		TypeOrmModule.forRootAsync({
@@ -12,9 +12,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 				port: configService.get<number>('database.port'),
 				username: configService.get<string>('database.username'),
 				password: configService.get<string>('database.password'),
-				database: configService.get<string>('database.name'),
-				entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-				synchronize: true, // In production, consider using migrations instead of synchronize
+				database: configService.get<string>('database.database'),
+				entities: [User],
+				synchronize: true,
 			}),
 			inject: [ConfigService],
 		}),

@@ -1,27 +1,32 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { JwtStrategy } from './jwt.strategy';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
 import { UsersModule } from '../users/users.module';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { LocalStrategy } from './strategies/local.strategy';
+import { jwtConstants } from 'src/common/constants/constants';
+import { MailModule } from 'src/mail/mail.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from 'src/entities/user.entity';
+import { GoogleStrategy } from './strategies/google.strategy';
+import { AppConfigModule } from 'src/config/config.module';
 
 @Module({
 	imports: [
+		TypeOrmModule.forFeature([User]),
 		forwardRef(() => UsersModule),
 		PassportModule,
-		JwtModule.registerAsync({
-			imports: [ConfigModule],
-			useFactory: async (configService: ConfigService) => ({
-				secret: configService.get<string>('JWT_SECRET'),
-				signOptions: { expiresIn: '15m' },
-			}),
-			inject: [ConfigService],
+		JwtModule.register({
+			secret: jwtConstants.secret,
+			signOptions: { expiresIn: '24h' },
 		}),
+		MailModule,
+		AppConfigModule,
 	],
-	providers: [AuthService, JwtStrategy],
+	providers: [AuthService, JwtStrategy, LocalStrategy, GoogleStrategy],
 	controllers: [AuthController],
-	exports: [AuthService],
+	exports: [AuthService, JwtModule],
 })
 export class AuthModule {}

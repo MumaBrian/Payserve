@@ -1,10 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, BeforeInsert } from 'typeorm';
-import * as bcrypt from 'bcryptjs';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { UserRole } from './enums/role.enum';
 
 @Entity()
 export class User {
-	@PrimaryGeneratedColumn()
-	id: number;
+	@PrimaryGeneratedColumn('uuid')
+	id: string;
 
 	@Column({ unique: true })
 	username: string;
@@ -15,11 +15,15 @@ export class User {
 	@Column({ unique: true })
 	email: string;
 
-	@Column({ default: 'user' })
-	role: string;
+	@Column({ type: 'enum', enum: UserRole })
+	roles: UserRole;
 
-	@BeforeInsert()
-	async hashPassword() {
-		this.password = await bcrypt.hash(this.password, 10);
-	}
+	@Column({ nullable: true, type: 'timestamp' })
+	otpCreatedAt: Date;
+
+	@Column({ nullable: true })
+	otp: string;
+
+	@Column({ default: false })
+	isVerified: boolean;
 }
