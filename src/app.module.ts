@@ -15,6 +15,7 @@ import { MailModule } from './mail/mail.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { AppConfigModule } from './config/config.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
 	imports: [
@@ -32,11 +33,21 @@ import { AppConfigModule } from './config/config.module';
 		UsersModule,
 		CacheModule,
 		MailModule,
+		ThrottlerModule.forRoot([
+			{
+				ttl: 60,
+				limit: 10,
+			},
+		]),
 	],
 	providers: [
 		{
 			provide: APP_GUARD,
 			useClass: JwtAuthGuard,
+		},
+		{
+			provide: APP_GUARD,
+			useClass: ThrottlerGuard,
 		},
 	],
 })
