@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from 'src/entities/user.entity';
+import { Users } from 'src/entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
@@ -21,8 +21,8 @@ export class UsersService {
 	private readonly logger = new Logger(UsersService.name);
 
 	constructor(
-		@InjectRepository(User)
-		private usersRepository: Repository<User>,
+		@InjectRepository(Users)
+		private usersRepository: Repository<Users>,
 		private cacheService: CacheService,
 	) {}
 
@@ -42,7 +42,7 @@ export class UsersService {
 		throw new InternalServerErrorException(message);
 	}
 
-	async create(createUserDto: CreateUserDto): Promise<User> {
+	async create(createUserDto: CreateUserDto): Promise<Users> {
 		const { role, email, password } = createUserDto;
 		const existingUser = await this.usersRepository.findOne({
 			where: { email },
@@ -58,7 +58,7 @@ export class UsersService {
 		if (password) {
 			hashedPassword = await bcrypt.hash(password, 10);
 		}
-		// const hashedPassword = await bcrypt.hash(password, 10);
+
 		const otpCreatedAt = new Date();
 
 		const user = this.usersRepository.create({
@@ -74,7 +74,7 @@ export class UsersService {
 		return savedUser;
 	}
 
-	async findAll(page: number = 1, limit: number = 10): Promise<User[]> {
+	async findAll(page: number = 1, limit: number = 10): Promise<Users[]> {
 		const cacheKey = `users:all:${page}:${limit}`;
 		return this.handleCache(cacheKey, async () => {
 			const skip = (page - 1) * limit;
@@ -82,7 +82,7 @@ export class UsersService {
 		});
 	}
 
-	async findOne(id: string): Promise<User> {
+	async findOne(id: string): Promise<Users> {
 		const cacheKey = `user:${id}`;
 		return this.handleCache(cacheKey, async () => {
 			const user = await this.usersRepository.findOne({ where: { id } });
@@ -94,7 +94,7 @@ export class UsersService {
 		});
 	}
 
-	async findByEmail(email: string): Promise<User> {
+	async findByEmail(email: string): Promise<Users> {
 		const cacheKey = `user:email:${email}`;
 		return this.handleCache(cacheKey, async () => {
 			const user = await this.usersRepository.findOne({
@@ -110,7 +110,7 @@ export class UsersService {
 		});
 	}
 
-	async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+	async update(id: string, updateUserDto: UpdateUserDto): Promise<Users> {
 		const updateResult = await this.usersRepository.update(
 			id,
 			updateUserDto,
@@ -145,7 +145,7 @@ export class UsersService {
 	async updateProfile(
 		id: string,
 		updateUserDto: UpdateUserDto,
-	): Promise<User> {
+	): Promise<Users> {
 		await this.update(id, updateUserDto);
 		return this.findOne(id);
 	}
@@ -174,7 +174,7 @@ export class UsersService {
 		await this.cacheService.del('users:all');
 	}
 
-	async findAdmin(): Promise<User | null> {
+	async findAdmin(): Promise<Users | null> {
 		const cacheKey = 'user:admin';
 		return this.handleCache(cacheKey, async () => {
 			const admin = await this.usersRepository.findOne({
@@ -182,5 +182,41 @@ export class UsersService {
 			});
 			return admin || null;
 		});
+	}
+
+	async updateRefreshToken(
+		userId: string,
+		refreshToken: string | null,
+	): Promise<void> {
+		await this.usersRepository.update(userId, { refreshToken });
+	}
+
+	async findById(id: string): Promise<Users> {
+		const user = await this.usersRepository.findOne({ where: { id: id } });
+		if (!user) {
+			throw new NotFoundException(`User with ID ${id} not found`);
+		}
+		return user;
+	}
+
+	async updateResetToken(
+		userId: string,
+		resetToken: string,
+		resetTokenExpiry: Date,
+	): Promise<void> {
+		await this.usersRepository.update(userId, {
+			resetToken,
+			resetTokenExpiry,
+		});
+	}
+
+	async findByResetToken(token: string): Promise<Users> {
+		const user = await this.usersRepository.findOne({
+			where: { resetToken: token },
+		});
+		if (!user) {
+			throw new NotFoundException('Invalid reset token');
+		}
+		return user;
 	}
 }
