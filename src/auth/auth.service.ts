@@ -14,7 +14,7 @@ import * as bcrypt from 'bcrypt';
 import { UserRole } from 'src/entities/enums/role.enum';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { MailService } from '../mail/mail.service';
-import { User } from 'src/entities/user.entity';
+import { Users } from 'src/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ResendOtpDto } from './dto/resend-otp.dto';
@@ -30,15 +30,15 @@ export class AuthService {
 	private readonly logger = new Logger(AuthService.name);
 	private redisClient: Redis;
 	constructor(
-		@InjectRepository(User)
-		private usersRepository: Repository<User>,
+		@InjectRepository(Users)
+		private usersRepository: Repository<Users>,
 		private usersService: UsersService,
 		private jwtService: JwtService,
 		private mailService: MailService,
 		private cacheService: CacheService,
 	) {}
 
-	private async findUserByEmail(email: string): Promise<User> {
+	private async findUserByEmail(email: string): Promise<Users> {
 		const user = await this.usersService.findByEmail(email);
 		if (!user) {
 			throw new HttpException(
@@ -63,7 +63,7 @@ export class AuthService {
 		}
 	}
 
-	private async checkUserVerification(user: User): Promise<void> {
+	private async checkUserVerification(user: Users): Promise<void> {
 		if (!user.isVerified) {
 			throw new HttpException(
 				'Please verify your email before logging in',
@@ -83,7 +83,7 @@ export class AuthService {
 	async validateOAuthLogin(user: any): Promise<any> {
 		const newUser = await this.checkExistingUser(user.email);
 		if (!newUser) {
-			const User = {
+			const Users = {
 				username: user.email.split('@')[0],
 				email: user.email,
 				password: null,
@@ -92,7 +92,7 @@ export class AuthService {
 				otp: null,
 			};
 
-			const createdUser = await this.usersService.create(User);
+			const createdUser = await this.usersService.create(Users);
 			return createdUser;
 		}
 		return newUser;
