@@ -1,8 +1,15 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { UserRole } from './enums/role.enum';
+import { Account } from './account.entity';
+import { Transaction } from './transaction.entity';
+import { Transfer } from './transfer.entity';
+import { Payment } from './payment.entity';
+import { FraudAlert } from './fraud-alert.entity';
+import { Ticket } from './ticket.entity';
+import { Notification } from './notification.entity';
 
 @Entity()
-export class User {
+export class Users {
 	@PrimaryGeneratedColumn('uuid')
 	id: string;
 
@@ -35,4 +42,25 @@ export class User {
 
 	@Column({ type: 'timestamp', nullable: true })
 	resetTokenExpiry?: Date;
+
+	@OneToMany(() => Account, (account) => account.user)
+	accounts: Account[];
+
+	@OneToMany(() => Transaction, (transaction) => transaction.user)
+	transactions: Transaction[];
+
+	@OneToMany(() => Transfer, (transfer) => transfer.user)
+	transfers: Transfer[];
+
+	@OneToMany(() => Payment, (payment) => payment.user)
+	payments: Payment[];
+
+	@OneToMany(() => FraudAlert, (fraudAlert) => fraudAlert.user)
+	fraudAlerts: FraudAlert[];
+
+	@OneToMany(() => Ticket, (ticket) => ticket.user)
+	tickets: Ticket[];
+
+	@OneToMany(() => Notification, (notification) => notification.user)
+	notifications: Notification[];
 }
