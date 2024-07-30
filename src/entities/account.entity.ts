@@ -10,6 +10,7 @@ import { AccountType } from './enums/account-type.enum';
 import { Payment } from './payment.entity';
 import { Transfer } from './transfer.entity';
 import { Transaction } from './transaction.entity';
+import { Schedule } from './schedule.entity';
 
 @Entity()
 export class Account {
@@ -51,4 +52,7 @@ export class Account {
 
 	@Column({ nullable: true, type: 'decimal' })
 	interestRate: number;
+
+	@OneToMany(() => Schedule, (schedule) => schedule.account)
+	schedules: Schedule[];
 }

@@ -7,6 +7,7 @@ import { Payment } from './payment.entity';
 import { FraudAlert } from './fraud-alert.entity';
 import { Ticket } from './ticket.entity';
 import { Notification } from './notification.entity';
+import { Schedule } from './schedule.entity';
 
 @Entity()
 export class Users {
@@ -63,4 +64,7 @@ export class Users {
 
 	@OneToMany(() => Notification, (notification) => notification.user)
 	notifications: Notification[];
+
+	@OneToMany(() => Schedule, (schedule) => schedule.user)
+	schedules: Schedule[];
 }
