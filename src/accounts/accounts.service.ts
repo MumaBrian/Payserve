@@ -8,8 +8,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Not, Repository } from 'typeorm';
 import { Account } from '../entities/account.entity';
 import { CreateAccountDto } from './dto/create-account.dto';
-import { Users } from '../entities/user.entity';
-import { AccountStatus } from 'src/entities/enums/account-type.enum';
+import { AccountStatus } from '../entities/enums/account-type.enum';
+
 @Injectable()
 export class AccountsService {
 	constructor(
@@ -17,12 +17,15 @@ export class AccountsService {
 		private accountsRepository: Repository<Account>,
 	) {}
 
-	async create(
-		createAccountDto: CreateAccountDto,
-		user: Users,
-	): Promise<Account> {
-		const { balance, type, overdraftLimit, currency, interestRate } =
-			createAccountDto;
+	async create(createAccountDto: CreateAccountDto): Promise<Account> {
+		const {
+			balance,
+			type,
+			overdraftLimit,
+			currency,
+			interestRate,
+			userId,
+		} = createAccountDto;
 
 		const account = this.accountsRepository.create({
 			balance,
@@ -31,17 +34,19 @@ export class AccountsService {
 			overdraftLimit,
 			currency,
 			interestRate,
-			user,
+			user: { id: userId },
 		});
 
 		return this.accountsRepository.save(account);
 	}
 
 	async findAll(): Promise<Account[]> {
-		return this.accountsRepository.find();
+		return this.accountsRepository.find({
+			relations: ['user', 'payments'],
+		});
 	}
 
-	async findOne(id: number): Promise<Account> {
+	async findOne(id: string): Promise<Account> {
 		const account = await this.accountsRepository.findOne({
 			where: { id },
 		});
@@ -62,14 +67,14 @@ export class AccountsService {
 		}
 	}
 
-	async setInactive(accountId: number, reason: string): Promise<void> {
+	async setInactive(accountId: string, reason: string): Promise<void> {
 		const account = await this.findOne(accountId);
-		account.status = 'inactive';
+		account.status = AccountStatus.INACTIVE;
 		account.inactiveReason = reason;
 		await this.accountsRepository.save(account);
 	}
 
-	async handleOverdraft(accountId: number, amount: number): Promise<void> {
+	async handleOverdraft(accountId: string, amount: number): Promise<void> {
 		const account = await this.findOne(accountId);
 		if (account.balance + (account.overdraftLimit ?? 0) < amount) {
 			throw new BadRequestException(

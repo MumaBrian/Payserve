@@ -9,52 +9,63 @@ import {
 } from '@nestjs/common';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { AccountsService } from './accounts.service';
-import { AuthGuard } from '@nestjs/passport';
-import { Users } from 'src/entities/user.entity';
-import { User } from 'src/common/decorators/user.decorator';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { UserRole } from 'src/entities/enums/role.enum';
+import { Roles } from 'src/common/decorators/roles.decorator';
 
+@ApiTags('accounts')
 @Controller('accounts')
 export class AccountsController {
 	constructor(private readonly accountsService: AccountsService) {}
 
 	@Post()
-	@UseGuards(AuthGuard('jwt'))
-	async create(
-		@Body() createAccountDto: CreateAccountDto,
-		@User() user: Users,
-	) {
-		return this.accountsService.create(createAccountDto, user);
+	@UseGuards(JwtAuthGuard)
+	@ApiBearerAuth('authenticationToken')
+	async create(@Body() createAccountDto: CreateAccountDto) {
+		return this.accountsService.create(createAccountDto);
 	}
 
 	@Get()
+	@UseGuards(JwtAuthGuard)
+	@Roles(UserRole.Customer, UserRole.Admin)
+	@ApiBearerAuth('authenticationToken')
 	async findAll() {
 		return this.accountsService.findAll();
 	}
 
 	@Get(':id')
+	@UseGuards(JwtAuthGuard)
+	@ApiBearerAuth('authenticationToken')
 	async findOne(@Param('id') id: string) {
-		return this.accountsService.findOne(+id);
+		return this.accountsService.findOne(id);
 	}
 
 	@Patch('apply-interest')
-	@UseGuards(AuthGuard('jwt'))
+	@UseGuards(JwtAuthGuard)
+	@Roles(UserRole.Customer, UserRole.Admin)
+	@ApiBearerAuth('authenticationToken')
 	async applyInterest() {
 		await this.accountsService.applyInterest();
 		return { message: 'Interest applied to all applicable accounts' };
 	}
 
 	@Patch(':id/handle-overdraft')
-	@UseGuards(AuthGuard('jwt'))
+	@UseGuards(JwtAuthGuard)
+	@Roles(UserRole.Customer, UserRole.Admin)
+	@ApiBearerAuth('authenticationToken')
 	async handleOverdraft(
 		@Param('id') id: string,
 		@Body('amount') amount: number,
 	) {
-		await this.accountsService.handleOverdraft(+id, amount);
+		await this.accountsService.handleOverdraft(id, amount);
 		return { message: 'Overdraft handled' };
 	}
 
 	@Patch(':id/enforce-transaction-limits')
-	@UseGuards(AuthGuard('jwt'))
+	@UseGuards(JwtAuthGuard)
+	@ApiBearerAuth('authenticationToken')
+	@Roles(UserRole.Customer, UserRole.Admin)
 	async enforceTransactionLimits(
 		@Param('id') id: string,
 		@Body('amount') amount: number,
@@ -64,9 +75,11 @@ export class AccountsController {
 	}
 
 	@Patch(':id/set-inactive')
-	@UseGuards(AuthGuard('jwt'))
+	@UseGuards(JwtAuthGuard)
+	@Roles(UserRole.Customer, UserRole.Admin)
+	@ApiBearerAuth('authenticationToken')
 	async setInactive(@Param('id') id: string, @Body('reason') reason: string) {
-		await this.accountsService.setInactive(+id, reason);
+		await this.accountsService.setInactive(id, reason);
 		return { message: 'Account set to inactive' };
 	}
 }

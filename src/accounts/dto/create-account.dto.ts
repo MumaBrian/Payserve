@@ -27,4 +27,7 @@ export class CreateAccountDto {
 	@IsOptional()
 	@IsNumber()
 	interestRate?: number;
+
+	@IsString()
+	userId: string;
 }
