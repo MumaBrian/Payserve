@@ -9,6 +9,7 @@ import { Payment } from 'src/entities/payment.entity';
 import { Ticket } from 'src/entities/ticket.entity';
 import { Transaction } from 'src/entities/transaction.entity';
 import { Transfer } from 'src/entities/transfer.entity';
+import { Schedule } from 'src/entities/schedule.entity';
 
 @Module({
 	imports: [
@@ -30,6 +31,7 @@ import { Transfer } from 'src/entities/transfer.entity';
 					Ticket,
 					Transaction,
 					Transfer,
+					Schedule,
 				],
 				synchronize: true,
 			}),
