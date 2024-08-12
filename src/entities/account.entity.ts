@@ -14,13 +14,13 @@ import { Schedule } from './schedule.entity';
 
 @Entity()
 export class Account {
-	@PrimaryGeneratedColumn()
-	id: number;
+	@PrimaryGeneratedColumn('uuid')
+	id: string;
 
-	@Column()
+	@Column({ default: 0 })
 	balance: number;
 
-	@Column({ type: 'enum', enum: AccountType })
+	@Column({ type: 'enum', enum: AccountType, default: AccountType.CHECKING })
 	type: AccountType;
 
 	@Column({ default: 'active' })
