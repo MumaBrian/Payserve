@@ -62,4 +62,23 @@ export class MailService {
 			throw error;
 		}
 	}
+
+	async sendAlert(email: string, message: string) {
+		try {
+			const info = await this.transporter.sendMail({
+				from: this.configService.emailUser,
+				to: email,
+				subject: 'Fraud Alert',
+				text: message,
+			});
+			console.log(
+				`Fraud alert email sent successfully to ${email}: ${info.response}`,
+			);
+		} catch (error) {
+			console.error(
+				`Failed to send fraud alert email to ${email}: ${error.message}`,
+			);
+			throw error;
+		}
+	}
 }
