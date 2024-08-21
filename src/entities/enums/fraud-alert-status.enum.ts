@@ -1,4 +1,5 @@
 export enum FraudAlertStatus {
-	PENDING = 'pending',
-	RESOLVED = 'resolved',
+	PENDING = 'PENDING',
+	RESOLVED = 'RESOLVED',
+	DISMISSED = 'DISMISSED',
 }
