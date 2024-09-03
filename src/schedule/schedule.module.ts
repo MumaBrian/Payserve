@@ -7,12 +7,14 @@ import { Schedule } from '../entities/schedule.entity';
 import { Account } from '../entities/account.entity';
 import { Transaction } from '../entities/transaction.entity';
 import { TransactionsService } from '../transactions/transactions.service';
+import { FraudModule } from 'src/fraud/fraud.module';
 
 @Module({
 	imports: [
 		NestScheduleModule.forRoot(),
 		TransactionsModule,
 		TypeOrmModule.forFeature([Schedule, Account, Transaction]),
+		FraudModule,
 	],
 	providers: [ScheduleService, TransactionsService],
 })
