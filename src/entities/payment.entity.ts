@@ -4,9 +4,8 @@ import { Account } from './account.entity';
 
 @Entity()
 export class Payment {
-	@PrimaryGeneratedColumn()
-	id: number;
-
+	@PrimaryGeneratedColumn('uuid')
+	id: string;
 	@Column()
 	amount: number;
 
